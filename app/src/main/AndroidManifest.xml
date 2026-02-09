@@ -110,7 +110,7 @@
             android:label="Terminal Styling"
             android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
-        <!-- X11 Desktop Activity -->
+        <!-- X11 Activities - TEMPORARILY DISABLED
         <activity
             android:name=".app.x11.X11Activity"
             android:exported="false"
@@ -120,12 +120,12 @@
             android:screenOrientation="unspecified"
             android:hardwareAccelerated="true" />
 
-        <!-- X11 Launcher Activity -->
         <activity
             android:name=".app.x11.X11LauncherActivity"
             android:exported="false"
             android:label="Desktop Launcher"
             android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
+        -->
 
         <activity
             android:name=".shared.activities.ReportActivity"
