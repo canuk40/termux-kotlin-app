@@ -165,9 +165,13 @@ jobs:
         id: bump
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message }}"
-          CURRENT_VERSION="${{ needs.build.outputs.version }}"
           
-          # Extract version components
+          # Get the latest git tag, default to v0.0.0 if no tags exist
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+          
+          # Remove 'v' prefix and extract version components
+          CURRENT_VERSION=${LATEST_TAG#v}
           MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
           MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
           PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
@@ -188,6 +192,7 @@ jobs:
           
           NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "📌 Current version: $LATEST_TAG"
           echo "📌 New version: $NEW_VERSION"
       
       - name: Create release tag
