@@ -48,6 +48,10 @@ hiddenapibypass = "6.1"
 termux-am = "v2.0.0"
 desugar = "2.1.5"
 
+# X11 / VNC
+vnc-viewer = "0.7.0"
+androidx-webkit = "1.12.1"
+
 # Testing
 junit = "4.13.2"
 junit-ext = "1.2.1"
@@ -121,6 +125,10 @@ commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
 termux-am-library = { module = "com.termux:termux-am-library", version.ref = "termux-am" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
+
+# X11 / VNC
+vnc-viewer = { module = "com.github.pelya:android-vnc-viewer", version.ref = "vnc-viewer" }
+androidx-webkit = { module = "androidx.webkit:webkit", version.ref = "androidx-webkit" }
 
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }

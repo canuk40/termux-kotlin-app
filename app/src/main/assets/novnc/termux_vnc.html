@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Termux Desktop</title>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        #screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-family: sans-serif;
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #error {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 50, 50, 0.95);
+            color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: sans-serif;
+            max-width: 80%;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Connecting to desktop...</div>
+    </div>
+    
+    <div id="error">
+        <h3>Connection Failed</h3>
+        <p id="error-message"></p>
+    </div>
+    
+    <div id="screen"></div>
+    
+    <!-- noVNC libraries -->
+    <script type="module">
+        import RFB from './core/rfb.js';
+        
+        let rfb;
+        let desktopName;
+        
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const host = urlParams.get('host') || 'localhost';
+        const port = urlParams.get('port') || '5901';
+        const password = urlParams.get('password') || '';
+        const autoconnect = urlParams.get('autoconnect') !== 'false';
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function connected(e) {
+            hideLoading();
+            console.log('Connected to ' + desktopName);
+        }
+        
+        function disconnected(e) {
+            if (e.detail.clean) {
+                console.log('Disconnected');
+            } else {
+                showError('Connection lost: ' + e.detail.reason);
+            }
+        }
+        
+        function credentialsRequired(e) {
+            // For now, we don't require passwords
+            // Can be enhanced later
+            if (password) {
+                rfb.sendCredentials({ password: password });
+            }
+        }
+        
+        function desktopNameChanged(e) {
+            desktopName = e.detail.name;
+        }
+        
+        function connect() {
+            try {
+                const url = `ws://${host}:${port}`;
+                console.log('Connecting to ' + url);
+                
+                rfb = new RFB(document.getElementById('screen'), url, {
+                    shared: true,
+                    repeaterID: '',
+                    credentials: { password: password }
+                });
+                
+                // Event handlers
+                rfb.addEventListener('connect', connected);
+                rfb.addEventListener('disconnect', disconnected);
+                rfb.addEventListener('credentialsrequired', credentialsRequired);
+                rfb.addEventListener('desktopname', desktopNameChanged);
+                
+                // Settings for mobile
+                rfb.scaleViewport = true;
+                rfb.resizeSession = true;
+                rfb.showDotCursor = true;
+                rfb.clipViewport = false;
+                
+                // Quality settings
+                rfb.qualityLevel = 6;
+                rfb.compressionLevel = 2;
+                
+            } catch (err) {
+                showError('Failed to create RFB client: ' + err.message);
+            }
+        }
+        
+        // Auto-connect on load
+        if (autoconnect) {
+            window.addEventListener('load', connect);
+        }
+        
+        // Expose functions for Android WebView interaction
+        window.termuxDesktop = {
+            connect: connect,
+            disconnect: function() {
+                if (rfb) {
+                    rfb.disconnect();
+                }
+            },
+            getState: function() {
+                return rfb ? rfb._rfb_connection_state : 'disconnected';
+            }
+        };
+    </script>
+</body>
+</html>

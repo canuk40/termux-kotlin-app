@@ -39,8 +39,8 @@ Homepage: https://wiki.termux.com/wiki/Termux:API
 Depends: bash, util-linux, termux-am (>= 0.8.0)
 Description: Termux API commands (install also the Termux:API app)
 Filename: aarch64/termux-api_0.59.1-1_aarch64.deb
-Size: 28904
-SHA256: 409f9ae0570a08bbd112e6f8975db6bb5d96469295ad9e4fd47eb5525a121309
+Size: 21964
+SHA256: 3383456d866e568f97bfceeb8231ecb363c3aaeccaefa6e5942e2cffc8de6d5f
 
 Package: termux-core
 Architecture: aarch64

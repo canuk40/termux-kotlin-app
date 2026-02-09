@@ -155,6 +155,9 @@ dependencies {
     implementation project(":terminal-view")
     implementation project(":termux-shared")
     
+    // X11 / VNC support
+    implementation libs.androidx.webkit
+    
     // Kotlin
     implementation libs.kotlin.stdlib
     implementation libs.bundles.coroutines

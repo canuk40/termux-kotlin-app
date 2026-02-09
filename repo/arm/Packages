@@ -71,3 +71,16 @@ Filename: arm/termux-tools_1.46.0+really1.45.0-1_arm.deb
 Size: 33452
 SHA256: 3d60d706e402bef93913c628850c93fdb207a21e0254205b1ac82449bb2e061d
 
+Package: termux-api
+Architecture: arm
+Installed-Size: 364
+Maintainer: @termux
+Version: 0.59.1-1
+Homepage: https://wiki.termux.com/wiki/Termux:API
+Depends: bash, util-linux, termux-am (>= 0.8.0)
+Description: Termux API commands (install also the Termux:API app)
+Filename: arm/termux-api_0.59.1-1_arm.deb
+Size: 21956
+SHA256: 7538342e430c51fe17cdb3e119f1150bae796665e89c3dae2b9c7e1adb0cfcf8
+
+
