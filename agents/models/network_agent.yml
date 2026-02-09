@@ -1,0 +1,28 @@
+name: network_agent
+description: Network diagnostics and connectivity agent. Full network access for autonomous operation.
+version: "1.0.0"
+
+capabilities:
+  - filesystem.read
+  - filesystem.write
+  - memory.read
+  - memory.write
+  - network.local
+  - network.external  # Full network access for autonomous operation
+  - system.info
+  - system.process
+  - exec.shell
+  - exec.analyze
+
+skills:
+  - network
+  - fs
+
+memory_backend: json
+
+tasks:
+  - check_ports: "Check which ports are listening on localhost"
+  - check_services: "Check status of local services"
+  - test_localhost: "Test localhost connectivity"
+  - list_connections: "List active network connections"
+  - check_dns_config: "Check DNS resolver configuration"
