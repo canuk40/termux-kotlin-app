@@ -1,0 +1,97 @@
+name: Auto Label
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  label:
+    name: Auto Label PR/Issue
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Label based on title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request?.title || context.payload.issue?.title;
+            const number = context.payload.pull_request?.number || context.payload.issue?.number;
+            const labels = [];
+            
+            // Conventional commit labels
+            if (title.match(/^feat(\(.+\))?:/)) labels.push('enhancement', 'feature');
+            if (title.match(/^fix(\(.+\))?:/)) labels.push('bug', 'fix');
+            if (title.match(/^docs(\(.+\))?:/)) labels.push('documentation');
+            if (title.match(/^style(\(.+\))?:/)) labels.push('style');
+            if (title.match(/^refactor(\(.+\))?:/)) labels.push('refactor');
+            if (title.match(/^perf(\(.+\))?:/)) labels.push('performance');
+            if (title.match(/^test(\(.+\))?:/)) labels.push('testing');
+            if (title.match(/^build(\(.+\))?:/)) labels.push('build');
+            if (title.match(/^ci(\(.+\))?:/)) labels.push('ci');
+            if (title.match(/^chore(\(.+\))?:/)) labels.push('chore');
+            
+            // Breaking change label
+            if (title.match(/!:/) || title.match(/BREAKING CHANGE/)) {
+              labels.push('breaking-change');
+            }
+            
+            // Component labels
+            if (title.match(/\(x11\)/i) || title.match(/desktop/i) || title.match(/vnc/i)) {
+              labels.push('x11', 'desktop');
+            }
+            if (title.match(/\(api\)/i) || title.match(/termux-api/i)) {
+              labels.push('termux-api');
+            }
+            if (title.match(/\(terminal\)/i)) {
+              labels.push('terminal');
+            }
+            
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: number,
+                labels: labels
+              });
+              
+              console.log(`Added labels: ${labels.join(', ')}`);
+            }
+      
+      - name: Label based on files changed
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            const labels = new Set();
+            
+            for (const file of files) {
+              if (file.filename.includes('x11/')) labels.add('x11');
+              if (file.filename.includes('api/')) labels.add('api');
+              if (file.filename.includes('.github/workflows/')) labels.add('ci');
+              if (file.filename.match(/\.(md|txt)$/)) labels.add('documentation');
+              if (file.filename.includes('test/')) labels.add('testing');
+              if (file.filename.includes('build.gradle')) labels.add('build');
+              if (file.filename.includes('repo/')) labels.add('packages');
+            }
+            
+            if (labels.size > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: Array.from(labels)
+              });
+            }

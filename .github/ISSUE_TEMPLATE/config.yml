@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/canuk40/termux-kotlin-app/discussions
+    about: Ask questions and discuss features with the community
+  - name: 📚 Documentation
+    url: https://github.com/canuk40/termux-kotlin-app/blob/main/README.md
+    about: Check out the documentation first
+  - name: 🔒 Security Issue
+    url: https://github.com/canuk40/termux-kotlin-app/security/advisories/new
+    about: Report a security vulnerability privately

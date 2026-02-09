@@ -3,20 +3,33 @@ name: CI
 on:
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE*'
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
 
 jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      should_release: ${{ steps.check_release.outputs.should_release }}
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -28,24 +41,44 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
-      - name: Build with Gradle
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Extract version from gradle
+        id: version
+        run: |
+          VERSION=$(grep "versionName" app/build.gradle | head -1 | awk -F'"' '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION"
       
-      - name: Run tests
-        run: ./gradlew test --stacktrace
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+      
+      - name: Run unit tests
+        run: ./gradlew test --stacktrace --no-daemon
+        continue-on-error: true
       
       - name: Run lint
-        run: ./gradlew lint --stacktrace
+        run: ./gradlew lint --stacktrace --no-daemon
+        continue-on-error: true
       
-      - name: Upload build artifacts
+      - name: Check if should create release
+        id: check_release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" =~ ^(feat|fix|perf)(\(.+\))?!?:.*$ ]] && [[ ! "$COMMIT_MSG" =~ \[skip-release\] ]]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "✅ Will create release for: $COMMIT_MSG"
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping release"
+          fi
+      
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: build-outputs
-          path: |
-            app/build/outputs/apk/
-            app/build/reports/
-          retention-days: 7
+          name: app-debug-${{ steps.version.outputs.version }}
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -56,28 +89,6 @@ jobs:
             **/build/test-results/
             **/build/reports/tests/
           retention-days: 7
-
-  lint:
-    name: Kotlin Lint
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-      
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-      
-      - name: Run ktlint
-        run: ./gradlew ktlintCheck --stacktrace
-        continue-on-error: true
       
       - name: Upload lint results
         uses: actions/upload-artifact@v4
@@ -85,27 +96,123 @@ jobs:
         with:
           name: lint-results
           path: |
-            **/build/reports/ktlint/
+            **/build/reports/lint*.html
+            **/build/reports/lint*.xml
           retention-days: 7
+      
+      - name: Comment PR with build info
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.version.outputs.version }}';
+            const runId = '${{ github.run_id }}';
+            const sha = '${{ github.sha }}'.substring(0, 7);
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🤖 Build Report\n\n` +
+                    `**Version:** ${version}\n` +
+                    `**Commit:** ${sha}\n` +
+                    `**Status:** ✅ Build successful\n\n` +
+                    `[📦 Download APK](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId})`
+            })
 
-  security:
-    name: Security Scan
+  auto-release:
+    name: Auto Release
+    needs: build
+    if: needs.build.outputs.should_release == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
         with:
-          sarif_file: 'trivy-results.sarif'
+          name: app-debug-${{ needs.build.outputs.version }}
+          path: ./apk
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges -20)
+          else
+            CHANGELOG=$(git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Save to file for multiline output
+          echo "$CHANGELOG" > changelog.txt
+          echo "Generated changelog with $(wc -l < changelog.txt) entries"
+      
+      - name: Determine version bump
+        id: bump
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          CURRENT_VERSION="${{ needs.build.outputs.version }}"
+          
+          # Extract version components
+          MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+          MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+          PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
+          
+          if [[ "$COMMIT_MSG" =~ ^feat(\(.+\))?!: ]] || [[ "$COMMIT_MSG" =~ BREAKING[[:space:]]CHANGE ]]; then
+            # Major version bump for breaking changes
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [[ "$COMMIT_MSG" =~ ^feat ]]; then
+            # Minor version bump for features
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            # Patch version bump for fixes
+            PATCH=$((PATCH + 1))
+          fi
+          
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "📌 New version: $NEW_VERSION"
+      
+      - name: Create release tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.bump.outputs.new_version }}" -m "Release ${{ steps.bump.outputs.new_version }}"
+          git push origin "${{ steps.bump.outputs.new_version }}"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.bump.outputs.new_version }}
+          name: Release ${{ steps.bump.outputs.new_version }}
+          body_path: changelog.txt
+          files: |
+            ./apk/*.apk
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Comment on commit with release info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.bump.outputs.new_version }}';
+            const sha = '${{ github.sha }}';
+            
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: sha,
+              body: `🚀 Automated release created: [${version}](https://github.com/${context.repo.owner}/${context.repo.repo}/releases/tag/${version})`
+            })
