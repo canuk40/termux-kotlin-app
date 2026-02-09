@@ -2,6 +2,73 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.1] - 2026-02-09
+
+### 🎉 Major Features
+
+#### 🖥️ X11 Desktop Environment
+- **Full Linux Desktop** - Run XFCE4 desktop environment on Android
+- **noVNC Web Client** - Mobile-optimized VNC access via WebView
+- **One-Click Setup** - Automated installation wizard with progress tracking
+- **Session Management** - Start/stop desktop sessions with controls
+- **Pre-configured Apps** - Firefox, file manager, terminal, text editor
+- **Touch Optimized** - Designed for mobile touch interaction
+- **Documentation** - Complete implementation guide in `docs/X11_COMPLETE_IMPLEMENTATION.md`
+
+#### 📦 Complete Termux:API Integration
+- **Built-in API Commands** - All 50+ termux-api commands included
+- **No External APK** - Works without separate Termux:API app
+- **All Architectures** - Packages built for arm64, arm, x86_64, x86
+- **Auto-Updates** - Updates through normal `pkg upgrade`
+- **Device APIs** - Battery, location, sensors, camera, clipboard, notifications, etc.
+
+#### 🤖 Autonomous CI/CD Pipeline
+- **Auto-Release System** - Automatic version bumping and releases
+  - `feat:` commits → Minor version bump (v2.2.0 → v2.3.0)
+  - `fix:` commits → Patch version bump (v2.2.0 → v2.2.1)  
+  - `feat!:` commits → Major version bump (v2.0.0 → v3.0.0)
+- **Auto-Generated Changelogs** - From conventional commit messages
+- **Multi-Architecture Builds** - 5 APK variants (arm64, arm, x86_64, x86, universal)
+- **Code Quality Checks** - Security scanning, static analysis, linting
+- **Dependency Management** - Dependabot with auto-merge when CI passes
+- **Issue Management** - Auto-labeling, stale issue handling
+
+### 🔧 Fixes
+- Fixed Android SDK/NDK configuration in CI workflows
+- Resolved duplicate string resource (action_open_settings)
+- Fixed X11 compilation errors:
+  - Corrected TermuxTheme import path
+  - Added Material Icons imports
+  - Fixed WebView API imports
+  - Corrected Logger.logError() calls
+- Fixed auto-release version detection to use git tags
+
+### 📚 Documentation
+- Added `docs/X11_COMPLETE_IMPLEMENTATION.md` - Complete X11 guide
+- Added `docs/X11_INTEGRATION_INVESTIGATION.md` - Research and analysis
+- Added `docs/X11_DESKTOP_ENVIRONMENT_ANALYSIS.md` - Desktop comparison
+- Added `docs/TERMUX_API_PACKAGE_FIX.md` - API package documentation
+- Added `docs/CI_CD_AUTOMATION.md` - Complete automation guide
+- Updated `.copilot/instructions.md` - Project conventions and guidelines
+
+### 🏗️ Infrastructure
+- GitHub Actions workflows:
+  - Enhanced CI with automated releases
+  - Code quality checks (Trivy, Detekt)
+  - Auto-merge for Dependabot PRs
+  - Auto-labeling for issues and PRs
+  - Stale issue management
+- Issue templates for bugs and features
+- Improved Dependabot configuration with grouping
+
+### 📦 Assets
+- Added noVNC client (~3 MB) in `app/src/main/assets/novnc/`
+- Added desktop installation scripts
+- Added termux-api .deb packages for all architectures
+- Updated repository metadata (Packages, Packages.gz)
+
+---
+
 ## [Unreleased] - Latest Changes
 
 ### Added

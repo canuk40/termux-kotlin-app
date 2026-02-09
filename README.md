@@ -87,15 +87,26 @@ No more separate plugin APKs! These features are now built-in:
 
 ### 📦 APK Size Explanation
 
-| Architecture | APK Size | Bootstrap Size |
-|-------------|----------|----------------|
-| `arm64-v8a` | ~35 MB | 30 MB |
-| `armeabi-v7a` | ~32 MB | 27 MB |
-| `x86_64` | ~34 MB | 29 MB |
-| `x86` | ~34 MB | 29 MB |
-| `universal` | ~130 MB | All 4 combined |
+| Architecture | APK Size | Bootstrap Size | v2.2.1 Size |
+|-------------|----------|----------------|-------------|
+| `arm64-v8a` | ~35 MB | 30 MB | 54 MB |
+| `armeabi-v7a` | ~32 MB | 27 MB | 51 MB |
+| `x86_64` | ~34 MB | 29 MB | 54 MB |
+| `x86` | ~34 MB | 29 MB | 53 MB |
+| `universal` | ~130 MB | All 4 combined | 136 MB |
 
-**Why is it larger than original Termux?**
+**Why is v2.2.1 larger?**
+
+The APK now includes:
+- ✅ **X11 Desktop Support** - noVNC client (~3 MB), desktop installation scripts
+- ✅ **Termux:API Packages** - 50+ API command scripts for all architectures
+- ✅ **Enhanced Assets** - Additional fonts, themes, and configuration files
+
+Despite the size increase, you get:
+- 🖥️ Full desktop environment capability
+- 📱 Complete device API integration
+- 🎨 More themes and customization options
+- 🚀 Better out-of-the-box experience
 
 The APK includes **66 packages rebuilt from source** with native `com.termux.kotlin` paths. These packages have the correct paths compiled directly into the ELF binaries, ensuring:
 - ✅ SSL/TLS works immediately (libgnutls uses correct cert path)
@@ -159,6 +170,7 @@ New features only available in the Kotlin version:
 
 | Feature | Description |
 |---------|-------------|
+| 🖥️ **X11 Desktop Environment** | Full Linux desktop with XFCE4, VNC, and noVNC web client |
 | 🎨 **Jetpack Compose UI** | Modern declarative UI for settings and dialogs |
 | 🔍 **Command Palette** | VS Code-style fuzzy command search (Ctrl+Shift+P) |
 | 📐 **Split Terminal** | Side-by-side or top/bottom terminal panes |
@@ -179,6 +191,102 @@ New features only available in the Kotlin version:
 | ⌨️ **Kitty Keyboard Protocol** | Enhanced keyboard with CSI u encoding for better modifier support |
 | 🎨 **Nerd Fonts Manager** | Built-in Nerd Fonts installer with style selection |
 | 🖥️ **Clean Bootstrap** | Silent first-run with proper welcome screen |
+| 🤖 **Autonomous CI/CD** | Fully automated builds, releases, and dependency updates |
+
+### 🆕 Latest Enhancements (v2.2.1)
+
+#### 🖥️ **X11 Desktop Environment (NEW!)**
+
+Run a **full Linux desktop** on your Android device! The Kotlin version now includes integrated X11 desktop environment support with:
+
+```bash
+# Access from Termux drawer or command line
+termux-desktop
+
+# Or install manually
+pkg install x11-repo tigervnc xfce4 xfce4-terminal firefox
+```
+
+**Features:**
+- ✅ **noVNC Web Client** - Access desktop via mobile-optimized web interface
+- ✅ **XFCE4 Desktop** - Full-featured, lightweight desktop environment
+- ✅ **Touch Optimized** - Designed for mobile touch interaction
+- ✅ **One-Click Setup** - Automated installation wizard
+- ✅ **Session Management** - Start/stop desktop sessions easily
+- ✅ **Application Launcher** - Pre-configured with essential apps
+- ✅ **VNC Server** - TigerVNC with automatic configuration
+
+**What you can do:**
+- 🌐 Browse the web with Firefox
+- 💻 Run GUI applications (VS Code, GIMP, LibreOffice)
+- 🎮 Play games via Wine
+- 📊 Use data visualization tools (matplotlib, R)
+- 🔧 Access GUI development tools
+
+See [docs/X11_COMPLETE_IMPLEMENTATION.md](docs/X11_COMPLETE_IMPLEMENTATION.md) for full documentation.
+
+#### 📦 **Complete Termux:API Integration**
+
+All Termux:API commands now work **without needing the external Termux:API app**:
+
+```bash
+# Battery status
+termux-battery-status
+
+# Clipboard operations
+termux-clipboard-get
+termux-clipboard-set "text"
+
+# Notifications
+termux-notification --title "Hello" --content "World"
+
+# Location
+termux-location
+
+# And 50+ more commands!
+```
+
+**Why this matters:**
+- ✅ **No External APK** - API commands work immediately after install
+- ✅ **50+ Commands** - Full API suite included
+- ✅ **All Architectures** - arm64, arm, x86_64, x86 packages built
+- ✅ **Auto-Updates** - Packages update through normal `pkg upgrade`
+
+**Available APIs:**
+- 📱 Device info, battery, sensors
+- 📷 Camera, photo, video
+- 🔔 Notifications, vibration, toast
+- 📋 Clipboard read/write
+- 📍 Location (GPS/network)
+- 📞 Call log, contacts, SMS
+- 📶 WiFi, telephony info
+- 🔆 Brightness, volume control
+- And many more...
+
+#### 🤖 **Fully Autonomous CI/CD Pipeline**
+
+Development is now **fully automated** with zero manual intervention:
+
+**Automatic Releases:**
+- Commit with `feat:` → Minor version bump (v2.2.0 → v2.3.0)
+- Commit with `fix:` → Patch version bump (v2.2.0 → v2.2.1)
+- Commit with `feat!:` → Major version bump (v2.0.0 → v3.0.0)
+- Auto-generated changelog from commit history
+- 5 APK variants built automatically (arm64, arm, x86_64, x86, universal)
+- GitHub Release created with APKs attached
+
+**Code Quality:**
+- 🔒 Security scanning (Trivy)
+- 🔍 Static analysis (Detekt)
+- 📊 Code quality metrics
+- ✅ Automatic PR labeling
+
+**Dependency Management:**
+- 🤖 Dependabot auto-updates
+- ✅ Auto-merge when CI passes
+- 📦 Grouped dependency updates
+
+See [docs/CI_CD_AUTOMATION.md](docs/CI_CD_AUTOMATION.md) for full details.
 
 ### 🆕 Latest Enhancements (v2.1.0)
 
