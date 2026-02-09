@@ -463,14 +463,12 @@ class TermuxActivity : AppCompatActivity(), ServiceConnection {
             ActivityUtils.startActivity(this, Intent(this, SettingsActivity::class.java))
         }
         
-        // Desktop button - TEMPORARILY DISABLED
-        /*
+        // Desktop button
         val desktopButton = findViewById<ImageButton>(R.id.desktop_button)
         desktopButton.setOnClickListener {
             val intent = Intent(this, com.termux.app.x11.X11LauncherActivity::class.java)
             ActivityUtils.startActivity(this, intent)
         }
-        */
     }
 
     private fun setNewSessionButtonView() {

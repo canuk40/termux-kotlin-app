@@ -57,7 +57,6 @@
                         android:background="@null"
                         android:contentDescription="@string/action_open_settings"
                         app:tint="?attr/termuxActivityDrawerImageTint" />
-                    <!-- Desktop button TEMPORARILY DISABLED
                     <ImageButton
                         android:id="@+id/desktop_button"
                         android:layout_width="40dp"
@@ -66,7 +65,6 @@
                         android:background="@null"
                         android:contentDescription="@string/action_open_desktop"
                         app:tint="?attr/termuxActivityDrawerImageTint" />
-                    -->
                 </LinearLayout>
 
                 <ListView
