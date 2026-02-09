@@ -288,12 +288,12 @@ task downloadBootstraps() {
     doLast {
         if (bootstrapPackageVariant == "apt-android-7") {
             def version = "2026.01.18-r1" + "+" + bootstrapPackageVariant
-            // Official Termux bootstrap - uses com.termux paths which match our package name
-            // No custom bootstrap or path rewriting needed!
-            downloadBootstrap("aarch64", "e05701be1c9845284a743efa71a593f643cc7c9783f924859a3ecd87cee5d2f4", version, bootstrapProjectDir)
-            downloadBootstrap("arm", "7406476733f80ce7ccbb9dc0056b4fc5f30ecddc58a3f6cdd87b0bf181df1f94", version, bootstrapProjectDir)
-            downloadBootstrap("i686", "3086df03a6e17048a9dd0baf68da2c97c262724d0867026e3aeb12bc1cf7b639", version, bootstrapProjectDir)
-            downloadBootstrap("x86_64", "81bed91a51f2e5821f1d040cd263033ab0344a48214c58f3300a2fe8862e32b7", version, bootstrapProjectDir)
+            // Modified bootstrap with custom scripts (Kitty keyboard, font manager, silent fallback)
+            // Checksums updated to match our modified bootstrap files
+            downloadBootstrap("aarch64", "69884d870798199ea366f89c07c3c46c569799f749b8a63dbf799d84d03857f6", version, bootstrapProjectDir)
+            downloadBootstrap("arm", "0f0a2e106deb17a9509392d12f90a82ce8631af100dd24adc94a76ae0eb6f125", version, bootstrapProjectDir)
+            downloadBootstrap("i686", "c3178ebb60e6359ace6ffae38cc511f2162bab5aeb66301c689c3ceaa3605b14", version, bootstrapProjectDir)
+            downloadBootstrap("x86_64", "052de8566b96f5c16dbc05815d92338ac90df65dc3ac389939b6e133f46e4ea0", version, bootstrapProjectDir)
         } else if (bootstrapPackageVariant == "apt-android-5") {
             // Note: apt-android-5 is no longer actively maintained by Termux.
             // Using legacy checksums for compatibility with Android 5/6 devices.
