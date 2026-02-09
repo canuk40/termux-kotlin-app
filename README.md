@@ -2,10 +2,10 @@
 
 <div align="center">
 
-[![CI](https://github.com/reapercanuk39/termux-kotlin-app/actions/workflows/ci.yml/badge.svg)](https://github.com/reapercanuk39/termux-kotlin-app/actions/workflows/ci.yml)
-[![Release](https://github.com/reapercanuk39/termux-kotlin-app/actions/workflows/release.yml/badge.svg)](https://github.com/reapercanuk39/termux-kotlin-app/actions/workflows/release.yml)
-[![GitHub Downloads](https://img.shields.io/github/downloads/reapercanuk39/termux-kotlin-app/total?style=for-the-badge&logo=github&label=Downloads&color=success)](https://github.com/reapercanuk39/termux-kotlin-app/releases)
-[![Latest Release](https://img.shields.io/github/v/release/reapercanuk39/termux-kotlin-app?style=for-the-badge&logo=android&label=Latest&color=blue)](https://github.com/reapercanuk39/termux-kotlin-app/releases/latest)
+[![CI](https://github.com/canuk40/termux-kotlin-app/actions/workflows/ci.yml/badge.svg)](https://github.com/canuk40/termux-kotlin-app/actions/workflows/ci.yml)
+[![Release](https://github.com/canuk40/termux-kotlin-app/actions/workflows/release.yml/badge.svg)](https://github.com/canuk40/termux-kotlin-app/actions/workflows/release.yml)
+[![GitHub Downloads](https://img.shields.io/github/downloads/canuk40/termux-kotlin-app/total?style=for-the-badge&logo=github&label=Downloads&color=success)](https://github.com/canuk40/termux-kotlin-app/releases)
+[![Latest Release](https://img.shields.io/github/v/release/canuk40/termux-kotlin-app?style=for-the-badge&logo=android&label=Latest&color=blue)](https://github.com/canuk40/termux-kotlin-app/releases/latest)
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Android](https://img.shields.io/badge/Android-7.0+-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://www.android.com/)
@@ -14,7 +14,7 @@
 
 **The official Termux Android terminal emulator, fully converted to Kotlin!**
 
-<a href="https://github.com/reapercanuk39/termux-kotlin-app/releases/latest">
+<a href="https://github.com/canuk40/termux-kotlin-app/releases/latest">
   <img src="https://img.shields.io/badge/⬇️_Download_APK-Latest_Release-brightgreen?style=for-the-badge&logo=android" alt="Download APK">
 </a>
 
@@ -176,6 +176,72 @@ New features only available in the Kotlin version:
 | 🔒 **HTTPS Support** | Proper SSL/TLS certificate configuration for secure mirrors |
 | 🖥️ **Full Terminal Support** | TERMINFO configured for clear, tput, ncurses apps |
 | 🤖 **Agent Framework** | Offline Python-based agent system with skills & capabilities |
+| ⌨️ **Kitty Keyboard Protocol** | Enhanced keyboard with CSI u encoding for better modifier support |
+| 🎨 **Nerd Fonts Manager** | Built-in Nerd Fonts installer with style selection |
+| 🖥️ **Clean Bootstrap** | Silent first-run with proper welcome screen |
+
+### 🆕 Latest Enhancements (v2.1.0)
+
+#### ⌨️ Kitty Keyboard Protocol Support
+
+Full implementation of the [Kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/) for enhanced keyboard input:
+
+```bash
+# Enable Kitty mode
+printf '\033[>1;2017h'
+
+# Test the protocol
+test-kitty-keyboard
+
+# Get help
+kitty-keyboard-help
+```
+
+**Features:**
+- ✅ **DECSET Mode 2017** - Standard protocol support
+- ✅ **CSI u Encoding** - Enhanced key reporting for all combinations
+- ✅ **Modified Keys** - Ctrl+1, Alt+Enter, Shift+arrows, etc.
+- ✅ **App Compatibility** - Works with Neovim, Helix, and modern TUI apps
+- ✅ **Backward Compatible** - Opt-in protocol, doesn't break existing apps
+
+**Benefits:**
+- Detect ALL key combinations (Ctrl+numbers, Alt+symbols, etc.)
+- Better international keyboard support
+- Modern terminal application compatibility
+- Enhanced navigation with modified cursor keys
+
+See [docs/KITTY_KEYBOARD_PROTOCOL.md](docs/KITTY_KEYBOARD_PROTOCOL.md) for full details.
+
+#### 🎨 Termux Font Manager
+
+Install beautiful programming fonts from [Nerd Fonts](https://www.nerdfonts.com/) with one command:
+
+```bash
+# Launch interactive font installer
+termux-font-manager
+```
+
+**Features:**
+- 📦 Downloads from latest Nerd Fonts release
+- 🎨 Choose from 100+ font families
+- 💫 Select specific styles (Bold, Italic, Mono, etc.)
+- ⚡ Progress bar with ETA and speed
+- ✅ Automatic verification and reload
+
+#### 🎉 Bootstrap Improvements
+
+First launch now shows the clean Termux welcome screen instead of verbose installation logs:
+
+```
+Welcome to Termux!
+
+Docs:       https://termux.dev/docs
+Donate:     https://termux.dev/donate
+Community:  https://termux.dev/community
+...
+```
+
+The bootstrap second-stage now runs silently in the background, providing a better first-time user experience.
 
 ### 📱 Integrated Device API (No Separate APK!)
 

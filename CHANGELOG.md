@@ -1,3 +1,41 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [Unreleased] - Latest Changes
+
+### Added
+- ⌨️ **Kitty Keyboard Protocol** support (DECSET mode 2017)
+  - CSI u encoding for enhanced keyboard input
+  - Support for all modified key combinations (Ctrl, Alt, Shift)
+  - Navigation and function keys with modifiers
+  - `test-kitty-keyboard` interactive tester
+  - `kitty-keyboard-help` quick reference command
+- 🎨 **Nerd Fonts Manager** - Built-in font installer (`termux-font-manager`)
+  - Download from latest Nerd Fonts release
+  - Choose from 100+ font families
+  - Select specific styles (Bold, Italic, Mono)
+  - Progress bar with ETA and speed
+- 🎉 **Bootstrap Improvements**
+  - Silent second-stage bootstrap
+  - Clean welcome screen on first launch
+- 📚 **Documentation & CI/CD**
+  - Complete Kitty keyboard protocol guide
+  - GitHub Actions workflows (CI, Release, PR validation)
+  - Dependabot for dependency updates
+  - Issue templates for bugs and features
+
+### Changed
+- Bootstrap fallback script now runs silently
+- Welcome message displays properly on first launch
+- Updated README with all new features
+
+### Fixed
+- Verbose bootstrap output on first run
+- Missing welcome screen on initial launch
+
+---
+
 ## [2026-01-27] Build #228
 
 ### Changes
