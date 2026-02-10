@@ -10,7 +10,6 @@ local.properties
 .idea/
 *.iws
 *.ipr
-*.iml
 .DS_Store
 /out/
 /captures
