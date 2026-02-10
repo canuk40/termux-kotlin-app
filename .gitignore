@@ -1,0 +1,43 @@
+# Gradle files
+.gradle/
+build/
+*.iml
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio
+.idea/
+*.iws
+*.ipr
+.DS_Store
+/out/
+/captures
+.externalNativeBuild
+.cxx
+
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Generated files
+bin/
+gen/
+
+# Signing files
+.signing/
+signing.properties
+*.jks
+!testkey_untrusted.jks
+
+# Log Files
+*.log
+
+# NDK
+obj/
+.externalNativeBuild/
+.cxx/
