@@ -243,6 +243,9 @@ object TermuxInstaller {
 
                 Logger.logInfo(LOG_TAG, "Bootstrap packages installed successfully.")
 
+                // Install essential packages (termux-api, util-linux)
+                installEssentialPackages(activity)
+
                 // Recreate env file since termux prefix was wiped earlier
                 TermuxShellEnvironment.writeEnvironmentToFile(activity)
                 
@@ -402,6 +405,90 @@ object TermuxInstaller {
 
     private fun ensureDirectoryExists(directory: File): Error? {
         return FileUtils.createDirectoryFile(directory.absolutePath)
+    }
+    
+    /**
+     * Install essential packages after bootstrap extraction.
+     * This includes termux-api and util-linux which users expect to be pre-installed.
+     */
+    private fun installEssentialPackages(activity: Activity) {
+        Logger.logInfo(LOG_TAG, "Installing essential packages (termux-api, util-linux)...")
+        
+        // Detect architecture
+        val arch = when (Build.SUPPORTED_ABIS[0]) {
+            "arm64-v8a" -> "aarch64"
+            "armeabi-v7a" -> "arm"
+            "x86_64" -> "x86_64"
+            "x86" -> "i686"
+            else -> {
+                Logger.logWarn(LOG_TAG, "Unknown architecture: ${Build.SUPPORTED_ABIS[0]}, skipping package installation")
+                return
+            }
+        }
+        
+        Logger.logInfo(LOG_TAG, "Detected architecture: $arch")
+        
+        val packagesToInstall = listOf(
+            "termux-api_0.59.1-1_${arch}.deb",
+            "util-linux_2.41.2-1_${arch}.deb"
+        )
+        
+        try {
+            val assetManager = activity.assets
+            val tempDir = File(TermuxConstants.TERMUX_FILES_DIR_PATH, "bootstrap-temp")
+            tempDir.mkdirs()
+            
+            for (packageFile in packagesToInstall) {
+                val assetPath = "bootstrap-packages/$arch/$packageFile"
+                val destFile = File(tempDir, packageFile)
+                
+                Logger.logInfo(LOG_TAG, "Extracting $packageFile from assets...")
+                
+                try {
+                    assetManager.open(assetPath).use { input ->
+                        FileOutputStream(destFile).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    
+                    Logger.logInfo(LOG_TAG, "Installing $packageFile with dpkg...")
+                    
+                    // Run dpkg -i to install the package
+                    val dpkgBin = File(TERMUX_PREFIX_DIR_PATH, "bin/dpkg")
+                    val process = ProcessBuilder(
+                        dpkgBin.absolutePath,
+                        "-i",
+                        destFile.absolutePath
+                    ).redirectErrorStream(true).start()
+                    
+                    val output = process.inputStream.bufferedReader().readText()
+                    val exitCode = process.waitFor()
+                    
+                    if (exitCode == 0) {
+                        Logger.logInfo(LOG_TAG, "Successfully installed $packageFile")
+                        Logger.logVerbose(LOG_TAG, "dpkg output: $output")
+                    } else {
+                        Logger.logWarn(LOG_TAG, "dpkg returned exit code $exitCode for $packageFile")
+                        Logger.logWarn(LOG_TAG, "dpkg output: $output")
+                        // Don't fail bootstrap if package installation fails - just warn
+                    }
+                    
+                    destFile.delete()
+                } catch (e: Exception) {
+                    Logger.logWarn(LOG_TAG, "Failed to install $packageFile: ${e.message}")
+                    // Continue with other packages
+                }
+            }
+            
+            // Clean up temp directory
+            tempDir.deleteRecursively()
+            
+            Logger.logInfo(LOG_TAG, "Essential package installation complete.")
+            
+        } catch (e: Exception) {
+            Logger.logError(LOG_TAG, "Error during package installation: ${e.message}")
+            // Don't fail bootstrap - just log the error
+        }
     }
     
     /**
