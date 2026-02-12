@@ -227,6 +227,11 @@
             android:name=".shared.activities.ReportActivity$ReportActivityBroadcastReceiver"
             android:exported="false" />
 
+        <!-- Termux API receiver: handles requests from termux-api C binary -->
+        <receiver
+            android:name=".api.TermuxApiReceiver"
+            android:exported="false" />
+
 
         <service
             android:name=".app.TermuxService"

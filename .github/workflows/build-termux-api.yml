@@ -1,0 +1,134 @@
+name: Build Termux API
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'app/src/main/cpp/termux-api/**'
+      - 'scripts/build-termux-api-binary.sh'
+      - 'scripts/build-termux-api-deb.sh'
+      - '.github/workflows/build-termux-api.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'app/src/main/cpp/termux-api/**'
+      - 'scripts/build-termux-api-binary.sh'
+      - 'scripts/build-termux-api-deb.sh'
+      - '.github/workflows/build-termux-api.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-binary:
+    name: Cross-compile termux-api binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          sdkmanager --install "ndk;29.0.14206865"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/29.0.14206865" >> $GITHUB_ENV
+
+      - name: Build termux-api binary for all architectures
+        run: |
+          chmod +x scripts/build-termux-api-binary.sh
+          ./scripts/build-termux-api-binary.sh
+
+      - name: Verify binaries
+        run: |
+          echo "=== Binary verification ==="
+          for arch in aarch64 arm x86_64 i686; do
+            binary="build/termux-api-binaries/$arch/termux-api-broadcast"
+            if [ -f "$binary" ]; then
+              echo "✓ $arch: $(file "$binary") ($(stat -c%s "$binary") bytes)"
+            else
+              echo "✗ $arch: MISSING"
+              exit 1
+            fi
+          done
+
+      - name: Upload binaries as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: termux-api-binaries
+          path: build/termux-api-binaries/
+          retention-days: 30
+
+  rebuild-debs:
+    name: Rebuild .deb packages
+    runs-on: ubuntu-latest
+    needs: build-binary
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download compiled binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: termux-api-binaries
+          path: build/termux-api-binaries/
+
+      - name: Fix binary permissions
+        run: chmod +x build/termux-api-binaries/*/termux-api-broadcast
+
+      - name: Rebuild .deb packages
+        run: |
+          chmod +x scripts/build-termux-api-deb.sh
+          ./scripts/build-termux-api-deb.sh
+
+      - name: Regenerate repository metadata
+        run: |
+          chmod +x scripts/generate-repo.sh
+          ./scripts/generate-repo.sh
+
+      - name: Verify .deb contents
+        run: |
+          echo "=== Verifying .deb packages ==="
+          for arch in aarch64 arm x86_64 i686; do
+            deb="app/src/main/assets/bootstrap-packages/$arch/termux-api_0.59.1-1_${arch}.deb"
+            echo ""
+            echo "--- $arch ---"
+            dpkg-deb -c "$deb" | grep -E "libexec/(termux-api|termux-callback)" || true
+            echo "Size: $(stat -c%s "$deb") bytes"
+          done
+
+      - name: Commit updated packages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if there are changes to commit
+          if git diff --quiet app/src/main/assets/bootstrap-packages/ repo/; then
+            echo "No changes to .deb packages"
+            exit 0
+          fi
+
+          git add app/src/main/assets/bootstrap-packages/
+          git add repo/
+          git commit -m "build: rebuild termux-api .deb packages with compiled binary
+
+          - Cross-compiled termux-api-broadcast for all 4 architectures
+          - Fixed libexec/termux-api directory→binary structure bug
+          - Updated repository metadata
+
+          [skip-release]"
+          git push
+
+      - name: Upload .deb packages as artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: termux-api-debs
+          path: |
+            app/src/main/assets/bootstrap-packages/*/termux-api_*.deb
+          retention-days: 30
